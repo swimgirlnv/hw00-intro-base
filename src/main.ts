@@ -81,7 +81,16 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/lambert-frag.glsl')),
   ]);
 
-  const uColorLoc = gl.getUniformLocation(lambert.prog, "u_Color");
+  const perlinShader = new ShaderProgram([
+    //new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
+    new Shader(gl.VERTEX_SHADER, require('./shaders/trig-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/perlin-frag.glsl')),
+  ]);
+
+  const uTimeLoc = gl.getUniformLocation(perlinShader.prog, "u_Time");
+  const startTime = Date.now();
+  // const uColorLoc = gl.getUniformLocation(lambert.prog, "u_Color");
+  const uColorLoc = gl.getUniformLocation(perlinShader.prog, "u_Color");
 
   // This function will be called every frame
   function tick() {
@@ -96,11 +105,16 @@ function main() {
       icosphere.create();
     }
     
-    gl.useProgram(lambert.prog);
+    //gl.useProgram(lambert.prog);
 
-    lambert.setGeometryColor(lambertColor);
+    //lambert.setGeometryColor(lambertColor);
 
-    renderer.render(camera, lambert, [
+    gl.useProgram(perlinShader.prog);
+
+    const currentTime = Date.now();
+    gl.uniform1f(uTimeLoc, (currentTime - startTime) / 1000.0); //time in seconds
+
+    renderer.render(camera, perlinShader, [
       //icosphere,
       //square,
       cube,

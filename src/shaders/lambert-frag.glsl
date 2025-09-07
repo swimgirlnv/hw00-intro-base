@@ -33,11 +33,12 @@ void main()
         diffuseTerm = clamp(diffuseTerm, 0.0, 1.0); // Uncommented this because some of my cube faces were pure black
                                                     // Also made sure the values were floats instead of ints.
 
-        float ambientTerm = 0.2;
+        float ambientTerm = .5;
 
         float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
                                                             //to simulate ambient lighting. This ensures that faces that are not
                                                             //lit by our point light are not completely black.
+        lightIntensity = clamp(lightIntensity, 0.0, 1.0); // Added this as well just in case
 
         // Compute final shaded color
         out_Col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);
