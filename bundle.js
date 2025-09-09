@@ -10344,7 +10344,6 @@ class Cube extends _rendering_gl_Drawable__WEBPACK_IMPORTED_MODULE_1__["default"
         this.center = gl_matrix__WEBPACK_IMPORTED_MODULE_0__.fromValues(center[0], center[1], center[2], 1);
     }
     create() {
-        // this.indices = new Uint32Array([0, 1, 2, 0, 2, 3]);
         const idx = [];
         for (let f = 0; f < 6; f++) {
             const b = f * 4;
@@ -10926,7 +10925,7 @@ module.exports = "#version 300 es\nprecision highp float;\n\n// Perlin frag shad
   \************************************/
 /***/ ((module) => {
 
-module.exports = "#version 300 es\nprecision highp float;\n\nin vec4 vs_Pos;   // object-space position\nin vec4 vs_Nor;   // object-space normal\nin vec4 vs_Col;\n\nuniform mat4 u_Model;\nuniform mat4 u_ViewProj;\nuniform mat3 u_ModelInvTr;\nuniform float u_Time;\n\nout vec4 fs_Pos;  // object-space pos for perlin frag\nout vec4 fs_Nor;  // world-space normal for lambert frag\nout vec4 fs_Col;\n\n// Helpers\nmat3 rotY(float a) {\n  float c = cos(a), s = sin(a);\n  return mat3( c, 0.0,  s,\n               0.0, 1.0, 0.0,\n              -s, 0.0,  c );\n}\nmat3 rotZ(float a) {\n  float c = cos(a), s = sin(a);\n  return mat3( c, -s, 0.0,\n               s,  c, 0.0,\n               0.0, 0.0, 1.0 );\n}\n\nvoid main() {\n  // Start in object space\n  vec3 posObj = vs_Pos.xyz;\n  vec3 nrmObj = vs_Nor.xyz;\n\n  // Normalize height in [0,1]\n  float yNorm = clamp((posObj.y + 1.0) * 0.5, 0.0, 1.0);\n  // Bell-shaped taper across height (strongest mid-height, gentle near ends)\n  float heightTaper = smoothstep(0.0, 0.3, yNorm) * (1.0 - smoothstep(0.7, 1.0, yNorm));\n\n  // 1) Gentle height-based twist with taper\n  float twistMax     = 0.7;          // max radians of twist from bottom->top\n  float twistTimeMod = 0.5 + 0.5 * sin(u_Time * 0.6);  // 0..1 over time\n  float twistAngle   = (posObj.y) * twistMax * twistTimeMod * heightTaper;\n  mat3 twistRot      = rotY(twistAngle);\n\n  posObj = twistRot * posObj;\n  nrmObj = twistRot * nrmObj;\n\n  // 2) Subtle bend (rotate around Z a tiny bit based on X)\n  // This reads like a page curl; much cleaner than big normal pushes.\n  float bendAmt  = 0.15 * sin(u_Time * 0.4); // time-varying strength\n  float bendAng  = posObj.x * bendAmt * (0.6 + 0.4 * cos(u_Time * 0.7)); // non-uniform\n  mat3 bendRot   = rotZ(bendAng);\n\n  posObj = bendRot * posObj;\n  nrmObj = bendRot * nrmObj;\n\n  // Soft ripple with radial falloff\n  // Fall off toward the cube edges to avoid ugly stretching\n  float radial = length(posObj.xz);\n  // Edge of a unit cube corner is ~sqrt(2) ~ 1.414; we start damping before that\n  float edgeFalloff = smoothstep(1.2, 0.2, radial); // 1 near center, ~0 near edges\n\n  float freqX = 4.0, freqY = 3.1, freqZ = 3.6;\n  float speed = 2.0;\n  float phase = u_Time * speed;\n  float wave  = sin(posObj.x * freqX + posObj.y * freqY + posObj.z * freqZ + phase);\n\n  float waveAmp = 0.08; // smaller than before for cleanliness\n  posObj += normalize(nrmObj) * (waveAmp * wave * edgeFalloff);\n\n  // Outputs\n  fs_Pos = vec4(posObj, 1.0);\n  fs_Nor = vec4(normalize(u_ModelInvTr * nrmObj), 0.0);\n  fs_Col = vs_Col;\n\n  vec4 posWorld = u_Model * vec4(posObj, 1.0);\n  gl_Position   = u_ViewProj * posWorld;\n}\n"
+module.exports = "#version 300 es\nprecision highp float;\n\nin vec4 vs_Pos;   // object-space position\nin vec4 vs_Nor;   // object-space normal\nin vec4 vs_Col;\n\nuniform mat4 u_Model;\nuniform mat4 u_ViewProj;\nuniform mat3 u_ModelInvTr;\nuniform float u_Time;\n\nout vec4 fs_Pos;  // object-space pos for perlin frag\nout vec4 fs_Nor;  // world-space normal for lambert frag\nout vec4 fs_Col;\n\n// Helpers\nmat3 rotY(float a) {\n  float c = cos(a), s = sin(a);\n  return mat3( c, 0.0,  s,\n               0.0, 1.0, 0.0,\n              -s, 0.0,  c );\n}\nmat3 rotZ(float a) {\n  float c = cos(a), s = sin(a);\n  return mat3( c, -s, 0.0,\n               s,  c, 0.0,\n               0.0, 0.0, 1.0 );\n}\n\nvoid main() {\n  // Start in object space\n  vec3 posObj = vs_Pos.xyz;\n  vec3 nrmObj = vs_Nor.xyz;\n\n  // Normalize height in [0,1]\n  float yNorm = clamp((posObj.y + 1.0) * 0.5, 0.0, 1.0);\n  // Bell-shaped taper across height (strongest mid-height, gentle near ends)\n  float heightTaper = smoothstep(0.0, 0.3, yNorm) * (1.0 - smoothstep(0.7, 1.0, yNorm));\n\n  // 1) Gentle height-based twist with taper\n  float twistMax     = 0.7;          // max radians of twist from bottom->top\n  float twistTimeMod = 0.5 + 0.5 * sin(u_Time * 0.6);  // 0..1 over time\n  float twistAngle   = (posObj.y) * twistMax * twistTimeMod * heightTaper;\n  mat3 twistRot      = rotY(twistAngle);\n\n  posObj = twistRot * posObj;\n  nrmObj = twistRot * nrmObj;\n\n  // 2) Subtle bend (rotate around Z a tiny bit based on X)\n  float bendAmt  = 0.15 * sin(u_Time * 0.4); // time-varying strength\n  float bendAng  = posObj.x * bendAmt * (0.6 + 0.4 * cos(u_Time * 0.7)); // non-uniform\n  mat3 bendRot   = rotZ(bendAng);\n\n  posObj = bendRot * posObj;\n  nrmObj = bendRot * nrmObj;\n\n  // Soft ripple with radial falloff\n  // Fall off toward the cube edges to avoid stretching\n  float radial = length(posObj.xz);\n  // Edge of a unit cube corner is ~sqrt(2) ~ 1.414; we start damping before that\n  float edgeFalloff = smoothstep(1.2, 0.2, radial); // 1 near center, ~0 near edges\n\n  float freqX = 4.0, freqY = 3.1, freqZ = 3.6;\n  float speed = 2.0;\n  float phase = u_Time * speed;\n  float wave  = sin(posObj.x * freqX + posObj.y * freqY + posObj.z * freqZ + phase);\n\n  float waveAmp = 0.08; // smaller than before for cleanliness\n  posObj += normalize(nrmObj) * (waveAmp * wave * edgeFalloff);\n\n  // Outputs\n  fs_Pos = vec4(posObj, 1.0);\n  fs_Nor = vec4(normalize(u_ModelInvTr * nrmObj), 0.0);\n  fs_Col = vs_Col;\n\n  vec4 posWorld = u_Model * vec4(posObj, 1.0);\n  gl_Position   = u_ViewProj * posWorld;\n}\n"
 
 /***/ })
 
@@ -11031,13 +11030,15 @@ const Stats = __webpack_require__(/*! stats-js */ "./node_modules/stats-js/build
 const controls = {
     tesselations: 5,
     color: [0, 0, 0],
-    'Load Scene': loadScene, // A function pointer, essentially
+    shape: "cube",
+    "Load Scene": loadScene, // A function pointer, essentially
 };
 let icosphere;
 let square;
 let cube;
 let prevTesselations = 5;
 let lambertColor = gl_matrix__WEBPACK_IMPORTED_MODULE_1__.fromValues(1, 1, 1, 1);
+let activeShape;
 function loadScene() {
     icosphere = new _geometry_Icosphere__WEBPACK_IMPORTED_MODULE_3__["default"](gl_matrix__WEBPACK_IMPORTED_MODULE_0__.fromValues(0, 0, 0), 1, controls.tesselations);
     icosphere.create();
@@ -11045,6 +11046,7 @@ function loadScene() {
     square.create();
     cube = new _geometry_Cube__WEBPACK_IMPORTED_MODULE_5__["default"](gl_matrix__WEBPACK_IMPORTED_MODULE_0__.fromValues(0, 0, 0));
     cube.create();
+    setActiveShape(controls.shape);
 }
 function updateLambertColor(c) {
     const [r, g, b] = Array.isArray(c) ? c : [c.r, c.g, c.b];
@@ -11053,25 +11055,46 @@ function updateLambertColor(c) {
     lambertColor[2] = b / 255;
     lambertColor[3] = 1.0;
 }
+function setActiveShape(shapeName) {
+    switch (shapeName) {
+        case "icosphere":
+            activeShape = icosphere;
+            break;
+        case "square":
+            activeShape = square;
+            break;
+        case "cube":
+            activeShape = cube;
+            break;
+        default:
+            activeShape = null;
+    }
+}
 function main() {
     // Initial display for framerate
     const stats = Stats();
     stats.setMode(0);
-    stats.domElement.style.position = 'absolute';
-    stats.domElement.style.left = '0px';
-    stats.domElement.style.top = '0px';
+    stats.domElement.style.position = "absolute";
+    stats.domElement.style.left = "0px";
+    stats.domElement.style.top = "0px";
     document.body.appendChild(stats.domElement);
     // Add controls to the gui
     const gui = new dat_gui__WEBPACK_IMPORTED_MODULE_2__.GUI();
-    gui.add(controls, 'tesselations', 0, 8).step(1);
-    gui.addColor(controls, 'color').name('Lambert Color').onChange(updateLambertColor);
-    gui.add(controls, 'Load Scene');
+    gui.add(controls, "tesselations", 0, 8).step(1);
+    gui
+        .addColor(controls, "color")
+        .name("Lambert Color")
+        .onChange(updateLambertColor);
+    gui
+        .add(controls, "shape", ["cube", "square", "icosphere"])
+        .onChange((v) => setActiveShape(v));
+    gui.add(controls, "Load Scene");
     updateLambertColor(controls.color);
     // get canvas and webgl context
-    const canvas = document.getElementById('canvas');
-    const gl = canvas.getContext('webgl2');
+    const canvas = document.getElementById("canvas");
+    const gl = canvas.getContext("webgl2");
     if (!gl) {
-        alert('WebGL 2 not supported!');
+        alert("WebGL 2 not supported!");
     }
     // `setGL` is a function imported above which sets the value of `gl` in the `globals.ts` module.
     // Later, we can import `gl` from `globals.ts` to access it
@@ -11111,16 +11134,12 @@ function main() {
         gl.useProgram(perlinShader.prog);
         const currentTime = Date.now();
         gl.uniform1f(uTimeLoc, (currentTime - startTime) / 1000.0); //time in seconds
-        renderer.render(camera, perlinShader, [
-            //icosphere,
-            //square,
-            cube,
-        ], lambertColor);
+        renderer.render(camera, perlinShader, activeShape ? [activeShape] : [], lambertColor);
         stats.end();
         // Tell the browser to call `tick` again whenever it renders a new frame
         requestAnimationFrame(tick);
     }
-    window.addEventListener('resize', function () {
+    window.addEventListener("resize", function () {
         renderer.setSize(window.innerWidth, window.innerHeight);
         camera.setAspectRatio(window.innerWidth / window.innerHeight);
         camera.updateProjectionMatrix();
