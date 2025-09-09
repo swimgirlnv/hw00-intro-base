@@ -48,7 +48,6 @@ void main() {
   nrmObj = twistRot * nrmObj;
 
   // 2) Subtle bend (rotate around Z a tiny bit based on X)
-  // This reads like a page curl; much cleaner than big normal pushes.
   float bendAmt  = 0.15 * sin(u_Time * 0.4); // time-varying strength
   float bendAng  = posObj.x * bendAmt * (0.6 + 0.4 * cos(u_Time * 0.7)); // non-uniform
   mat3 bendRot   = rotZ(bendAng);
@@ -57,7 +56,7 @@ void main() {
   nrmObj = bendRot * nrmObj;
 
   // Soft ripple with radial falloff
-  // Fall off toward the cube edges to avoid ugly stretching
+  // Fall off toward the cube edges to avoid stretching
   float radial = length(posObj.xz);
   // Edge of a unit cube corner is ~sqrt(2) ~ 1.414; we start damping before that
   float edgeFalloff = smoothstep(1.2, 0.2, radial); // 1 near center, ~0 near edges

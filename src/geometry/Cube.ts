@@ -14,7 +14,6 @@ class Cube extends Drawable {
   }
 
   create() {
-    // this.indices = new Uint32Array([0, 1, 2, 0, 2, 3]);
     const idx: number[] = [];
     for (let f = 0; f < 6; f++) {
       const b = f * 4;
